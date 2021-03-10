@@ -206,15 +206,17 @@ The way a StackingClassifier works is that it takes in a number of estimators th
 1. Estimator 1:
    - This model was my initial model that outperformed the other models I tested in my RandomizedSearchCV
    - Note that the hyperparameters for the RandomForestClassifier were chosen through a RandomizedSearchCV explained in my Initial Model selection.
+   
 ```python
 RandomForestClassifier(bootstrap=False,  # Don't bootstrap (each tree is trained on all data)
                        class_weight='balanced',  # Imbalanced data
                        min_samples_leaf=4,  # Increasing can improve generalizability if we are overfitting
                        n_estimators=216,  # Plenty of trees to try to reduce variability in predictions
-                       n_jobs=-1)
-    ```
+                       n_jobs=-1) 
+``` 
 2. Estimator 2:
     - A LogisticRegression model was used in addition to add a more variety of models. These hyperparameters were chosen based off of rerunning my RandomizedSearchCV until I got different models from the RandomForestClassifier.
+    
 ```python
 LogisticRegression(class_weight='balanced',  # Imbalanced data
                    n_jobs=-1, 
@@ -255,7 +257,7 @@ _______
 
 # Testing Metrics:
 
-![As we can see in the above image, SVC is extremely slow](Images/metrics.png)
+![metrics](Images/metrics.png)
 
 #### Interpretation:
 1. Looking at the confusion matrix, we see that our model did fairly well. In particular, our model misclassified only 14% of individuals not looking for work, and 37% of individuals looking for work.
