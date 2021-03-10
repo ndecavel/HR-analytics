@@ -26,14 +26,18 @@ This project focused on fairly simple data accessible through Kaggle, however, I
 
 
 ______
-# Hypothetical Scenario:
+# Hypothetical Scenario: [Kaggle](https://www.kaggle.com/arashnic/hr-analytics-job-change-of-data-scientists)
 ____
-You are working as a data scientist in a recruiting firm. The goal of a recruiter in this firm is to successfully help someone, who is looking for a new job, get hired. However, the current system in place involves recruiters to randomly reach out to people on their list. This is an issue because only a third of the people on the list are actually looking for work. This leads to the recruiter wasting a large chunk of their time reaching out to dead-ends. How can you, as a data scientist, help better allocate the recruiter's time to focus primarily on people who are looking for a job?
+"A company which is active in Big Data and Data Science wants to hire data scientists among people who successfully pass some courses which conduct by the company. Many people signup for their training. Company wants to know which of these candidates are really wants to work for the company after training or looking for a new employment because it helps to reduce the cost and time as well as the quality of training or planning the courses and categorization of candidates. Information related to demographics, education, experience are in hands from candidates signup and enrollment.
+
+This dataset designed to understand the factors that lead a person to leave current job for HR researches too. By model(s) that uses the current credentials,demographics,experience data you will predict the probability of a candidate to look for a new job or will work for the company, as well as interpreting affected factors on employee decision."
 _____
 # Research Question:
 _____
 **Given information about an individual, can we predict whether or not they are currently looking for a new job?**
 _________
+
+
 # Data <a id='data'></a>
 _________
 **Note that our data is imbalanced. 33% of the observations have the target = 1.**
@@ -64,7 +68,6 @@ The data we will be looking at includes 11 different features:
 #### Target
 1. ```target```: 1 = "Looking for a Job", 0 = "Not Looking for a Job"
 __________
-
 # Feature Engineering and Preprocessing Pipeline <a id='feature_engineering'></a>
    ____________
 For this model, we divide our features into 2 main categories: Numerical and Categorical. This is in order to create a preprocessing pipeline that could correctly deal with missing values **in an appropriate way**. 
@@ -79,7 +82,7 @@ For this model, we divide our features into 2 main categories: Numerical and Cat
 - **Numerical Preprocessing:**
     1. Instead of using a SimpleImputer, I choose to use an **```IterativeImputer```** instead. The IterativeImputer tries to mimic R's MICE package (Multivariate Imputation by Chained Equations). I decided to use this because I felt that it would be a better solution than the SimpleImputer because:
         1. Can't fill in the values with "missing" since that affects the pipeline when trying to standardize the columns.
-        2. It is a step in dealing with the problem of increased noise due to imputation [source = https://en.wikipedia.org/wiki/Imputation_(statistics)]
+        2. [It is a step in dealing with the problem of increased noise due to imputation](https://en.wikipedia.org/wiki/Imputation_(statistics))
     2. Next, we use a **```StandardScalar```** to normalize our data. Due to the fact that neither of my numerical columns have any severe outliers, this is preferred over a RobustScalar. In addition, the normalizing helps bring both features within a similar range.
     3. Finally, due to the fact that many ML algorithms can perform better when the numerical features have a Gaussian distribution, we use a **```QuantileTransformer```**
 
@@ -146,7 +149,7 @@ _______
 
 # Evaluation Metrics <a id='metrics'></a>
 __________
-I decided to use a **weighted f1 score** as my metric since my data is imbalanced. In addition, it is equally important for a business, who cares about this research question, to correctly predict those looking for work (Precision) while maintaining a high Recall Rate (we aren't missing potential job-seeking individuals). This priority is due to a focus on resource allocation. If a business wants to reach out to individuals that are currently looking for jobs, we want to use a model that efficiently allocates their resources (recruiters) by avoiding reaching out to False Positives and making sure we don't miss any True Positives.
+I decided to use a **weighted f1 score** as my metric since my data is imbalanced.  It is equally important for this business to correctly predict those looking for work (Precision) while maintaining a high Recall Rate (we aren't missing potential job-seeking individuals). This priority is due to a focus on resource allocation. If a business wants to reach out to individuals that are currently looking for jobs, we want to use a model that efficiently allocates their resources (recruiters) by avoiding reaching out to False Positives and making sure we don't miss any True Positives.
 
 ________
 # RandomizedSearchCV Results: 
@@ -270,13 +273,12 @@ _______
 
 
 4. All together, we can look at the weighted f1 score of **79%** because our business case revolves around maximizing both precision and recall. Note that since this is an imbalanced dataset, our f1 score calculates the metric for each label, weighs it proportionally to its relative frequency, and outputs a score that, in this case, is not in-between the recall and precision score. 
-______
-       
+5. 
 _________
 # Conclusion: <a id='conclusion'></a>  
 
 ## Summary:
-With a goal of implementing a variety of skills learned in my Machine Learning Lab, this project focused on HR data to help identify whether or not someone is currently looking for a job. After extensive EDA, I decided to construct three separate pipelines for preprocessing: one for each type of feature (numerical, categorical, ordinal). Next, although my data was imbalanced, I decided against using oversampling with SMOTE because it didn't lead to a noticeable improvement (as shown with cross validation). Finally, I tried several of ensemble techniques and decided that my final model would be a StackingClassifer with a variety of estimators derived from my RandomizedSearchCV and a GradientBoostingClassifier as my final estimator. Note that I used a weighted f1 score as my metric to compare models with as it equally values precision and recall scores while taking into consideration that the data is imbalanced. **Our final weighted f1 score**
+With a goal of implementing a variety of skills learned in my Machine Learning Lab, this project focused on HR data to help identify whether or not someone is currently looking for a job. After extensive EDA, I decided to construct three separate pipelines for preprocessing: one for each type of feature (numerical, categorical, ordinal). Next, although my data was imbalanced, I decided against using oversampling with SMOTE because it didn't lead to a noticeable improvement (as shown with cross validation). Finally, I tried several of ensemble techniques and decided that my final model would be a StackingClassifer with a variety of estimators derived from my RandomizedSearchCV and a GradientBoostingClassifier as my final estimator. Note that I used a weighted f1 score as my metric to compare models with as it equally values precision and recall scores while taking into consideration that the data is imbalanced.
 
 ## Common Questions:
 1. **Why does any of this matter?**
@@ -289,12 +291,8 @@ With a goal of implementing a variety of skills learned in my Machine Learning L
        - With numerical data, we need slightly different imputing strategies. This is because we want our end result to be all numerical. Therefore, I chose to use an IterativeImputer which I explain below.
 
 
-3. **How did I decide to using my own ordinal encoding?**
+3. **How did I decide to using my own ordinal encoding?**Cancel Changes
     - After noticing that a lot of the categories had some inherent order to them, I was interested to see if I could find a relationship with a given value and an improved chance of signifying whether an observation is "Looking for a Job" (target == 1). I did this by calculating the relative probability that each column (other than 'city', 'gender', and the numerical columns) leads to the target being 1.
-\begin{equation}
-P(target = 1 | X[col] = val) 
-\text{  For col in ordinal columns, val in unique values in X[col]}
-\end{equation}
 
 
 4. **Why did I use an IterativeImputer for my numerical data?**
@@ -303,7 +301,7 @@ P(target = 1 | X[col] = val)
 
 
 5. **Why did I use a QuantileTransformer on my numerical data?**
-    - "Many machine learning algorithms prefer or perform better when numerical variables have a Gaussian or standard probability distribution." (https://machinelearningmastery.com/quantile-transforms-for-machine-learning/). In particular, I included a LogisticRegression model in my RandomizedSearchCV which assumes that the data is normalized.
+    - ["Many machine learning algorithms prefer or perform better when numerical variables have a Gaussian or standard probability distribution."](https://machinelearningmastery.com/quantile-transforms-for-machine-learning/). In particular, I included a LogisticRegression model in my RandomizedSearchCV which assumes that the data is normalized.
 
 
 6. **Why did I use cross_val_score?**
