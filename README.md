@@ -291,7 +291,7 @@ With a goal of implementing a variety of skills learned in my Machine Learning L
        - With numerical data, we need slightly different imputing strategies. This is because we want our end result to be all numerical. Therefore, I chose to use an IterativeImputer which I explain below.
 
 
-3. **How did I decide to using my own ordinal encoding?**Cancel Changes
+3. **How did I decide to using my own ordinal encoding?**
     - After noticing that a lot of the categories had some inherent order to them, I was interested to see if I could find a relationship with a given value and an improved chance of signifying whether an observation is "Looking for a Job" (target == 1). I did this by calculating the relative probability that each column (other than 'city', 'gender', and the numerical columns) leads to the target being 1.
 
 
