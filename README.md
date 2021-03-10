@@ -22,8 +22,6 @@ This project focused on fairly simple data accessible through Kaggle, however, I
 
 1. [Final Model Selection and Evaluation](#final_model)
 
-1. [Results](#results)
-
 1. [Conclusion](#conclusion)
 
 
