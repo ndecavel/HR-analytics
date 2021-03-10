@@ -1,10 +1,10 @@
 # Classifying whether or not someone is looking for a job
 _____
 **About Me:**
-<br> Hi everyone! First of all, welcome to my github. I am a current Masters of Data Science student at The University of San Francisco and will be graduating in August of 2021! 
+<br> Hi everyone! First of all, welcome to my github. My name is Nicolas Decacvel-Bueff and I am a current Masters of Data Science student at The University of San Francisco and will be graduating in August of 2021! 
 _____
 **About the Project:**
-This project focused on fairly simple data accessible through Kaggle, however, I tried to be as thorough as possible with feature engineering, model selection, and explaining my reasonings for every decision made in the notebook. In addition, I included a hypothetical scenario to further motivate **JDSFKJDS***
+This project focused on fairly simple data accessible through Kaggle, however, I tried to be as thorough as possible with feature engineering, model selection, and explaining my reasonings for every decision made in the notebook. In addition, I included a hypothetical scenario to further motivate my project.
 
 ... Now, let us cue the curtain and get this show started!
 
