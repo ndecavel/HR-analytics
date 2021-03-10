@@ -101,7 +101,7 @@ For this section, I chose a few algorithms to include in my __```RandomizedSearc
            - **Bootstrap**: ```[True, False]```
                - When Bootstrap is True, it means that each decision tree is shown a sample of the training data. This is an attempt to create "dumber" decision trees in order to have a better, generalized model. Note that this parameter is dependent on **max_samples** which we set to a small k (between 5 and 20). 
            - **Class Weight**: ```[None, 'balanced', 'balanced_subsample']```
-               - Since our data is imbalanced, we want to include a variety of class_weights. Note that our SMOTE preprocessing step helps correct for this imbalance already. Therefore, I can expect the ideal class_weight to be None. This is more so a sanity check for me. 
+               - Since our data is imbalanced, we want to include a variety of class_weights. Note that since we are not performing SMOTE, I can assume that the class weight will either be balanced or a balanced_subsample.
            - **Number of Estimators**: ```np.linspace(50,500,4)```
               - Here I choose a variety of different number of estimators. These represent the number of decision trees that make up our "RandomForest". The larger the number can potentially lead to decreasing the variance of our model. 
               
