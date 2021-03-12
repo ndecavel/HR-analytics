@@ -44,28 +44,22 @@ _________
 _________
 **Note that our data is imbalanced. 33% of the observations have the target = 1.**
 
-The data we will be looking at includes 11 different features:
+The data we will be looking at includes 12 different features:
 #### Numerical Columns:
 1. ```city_development_index``` : Float from 0-1
-2. ```training_hours```: Number of hours trained
+2. ```training_hours```: Number of hours trained 
 
 #### Categorical:
 1. ```city```: 123 diff cities
 2. ```gender```: 4 genders: 'Male', 'Female', 'Other', nan
-
-
-#### Ordinal Categorical:
-1.  ```enrolled_university```: 'no_enrollment', 'Full time course', nan, 'Part time course'
-2.  ```education_level```: 'Graduate', 'Masters', 'High School', nan, 'Phd', 'Primary School'
-3. ```company_size```: nan, '50-99', '<10', '10000+', '5000-9999', '1000-4999', '10/49','100-500', '500-999'
-3. ```relevent_experience```: 'Has relevent experience', 'No relevent experience'
-6. ```major_discipline```: 'STEM', 'Business Degree', nan, 'Arts', 'Humanities', 'No Major', 'Other'
+3.  ```enrolled_university```: 'no_enrollment', 'Full time course', nan, 'Part time course'
+4.  ```education_level```: 'Graduate', 'Masters', 'High School', nan, 'Phd', 'Primary School'
+5. ```company_size```: nan, '50-99', '<10', '10000+', '5000-9999', '1000-4999', '10/49','100-500', '500-999'
+6. ```relevent_experience```: 'Has relevent experience', 'No relevent experience'
+7. ```major_discipline```: 'STEM', 'Business Degree', nan, 'Arts', 'Humanities', 'No Major', 'Other'
 8. ```last_new_job```: nan, 'never', 1,2,3,4, >4
-7. ```company_type```: 'Early Stage Startup', 'Funded Startup', 'NGO', 'Other', 'Public Sector', 'Pvt Ltd', nan
-4. ```last_new_job```: nan, 'never', 1,2,3,4, >4
-
-#### Numerical/Categorical
-1. ```experience```:  nan, <1, 1 through 20, >20
+9. ```company_type```: 'Early Stage Startup', 'Funded Startup', 'NGO', 'Other', 'Public Sector', 'Pvt Ltd', nan
+10. ```experience```:  nan, <1, 1 through 20, >20
 
 #### Target
 1. ```target```: 1 = "Looking for a Job", 0 = "Not Looking for a Job"
@@ -73,12 +67,12 @@ __________
 # Feature Engineering and Preprocessing Pipeline <a id='feature_engineering'></a>
    ____________
 For this model, we divide our features into 2 main categories: Numerical and Categorical. This is in order to create a preprocessing pipeline that could correctly deal with missing values **in an appropriate way**. 
+
 - **Categorical Preprocessing:** 
     1. The first step in this pipeline is to use a **```SimpleImputer```** to fill in the missing values (np.NaN) with "missing". Although there are many other strategies to use when filling in missing values, there could be underlying reasons in the data collection why an observation has missing data. Therefore, to simply fill in the missing values with the most_frequent of the data would be adding bias from us, the researcher. Without knowing more about why these values are np.nan, we can just fill in the value with "missing" for categorical features. 
     2. We then pipe this into a **```OneHotEncoder```** in order to encode each variable's values as a separate binary column.
-    3. Note that after further testing, I've decided to OneHotEncode the ordinal features as well. I did not notice an impact on the model itself when mapping the ordinal features individually to their relative values.
-    4. Note that after some EDA, I have noticed that some of the categorical features can be encoded with the OrdinalEncoder. However, this means that I need to create a custom class in order to properly label my features such that the OrdinalEncoder object can encode they way I envision (the default is alphabetically).
-    
+    3. Note that we do have some ordinal features (experience), however, I decided to OneHotEncode them after testing different strategies. 
+   
     
     
 - **Numerical Preprocessing:**
