@@ -42,7 +42,9 @@ _________
 
 # Data <a id='data'></a>
 _________
-**Note that our data is imbalanced. 33% of the observations have the target = 1.**
+**Note that our data is imbalanced. 25% of the observations have the target = 1.**
+
+![Pie Chart](Images/pie.png)
 
 The data we will be looking at includes 12 different features:
 #### Numerical Columns:
@@ -71,7 +73,7 @@ For this model, we divide our features into 2 main categories: Numerical and Cat
 - **Categorical Preprocessing:** 
     1. The first step in this pipeline is to use a **```SimpleImputer```** to fill in the missing values (np.NaN) with "missing". Although there are many other strategies to use when filling in missing values, there could be underlying reasons in the data collection why an observation has missing data. Therefore, to simply fill in the missing values with the most_frequent of the data would be adding bias from us, the researcher. Without knowing more about why these values are np.nan, we can just fill in the value with "missing" for categorical features. 
     2. We then pipe this into a **```OneHotEncoder```** in order to encode each variable's values as a separate binary column.
-    3. Note that we do have some ordinal features (experience), however, I decided to OneHotEncode them after testing different strategies. 
+    3. Note that after further testing, I've decided to OneHotEncode the ordinal features as well. I did not notice an impact on the model itself when mapping the ordinal features individually to their relative values.
    
     
     
@@ -90,14 +92,18 @@ For this section, I chose a few algorithms to include in my __```RandomizedSearc
    1. **```RandomForestClassifier```**
        1. Why: This was a ML model that I learned in my Intro to ML class. It seemed like a very good contester for this problem because it uses multiple decision trees (that individually tend to overfit on training data) and aggregates their predictions in order to decrease the variance of the model.
        2. Hyperparamater Tuning:
-           - **Min Samples Leaf**: ```np.linspace(1,30,4)```
+           - **Min Samples Leaf**: ```np.linspace(1,10,4)```
                - Min samples per leaf is a good hyperparameter to help each decision tree make more generalizable predictions. Note that the default is 1, which can lead to decision trees overfitting to the training data.
            - **Bootstrap**: ```[True, False]```
                - When Bootstrap is True, it means that each decision tree is shown a sample of the training data. This is an attempt to create "dumber" decision trees in order to have a better, generalized model. Note that this parameter is dependent on **max_samples** which we set to a small k (between 5 and 20). 
            - **Class Weight**: ```[None, 'balanced', 'balanced_subsample']```
-               - Since our data is imbalanced, we want to include a variety of class_weights. Note that since we are not performing SMOTE, I can assume that the class weight will either be balanced or a balanced_subsample.
-           - **Number of Estimators**: ```np.linspace(50,500,4)```
+               - Since our data is imbalanced, we want to include a variety of class_weights. Note that since we are not performing SMOTE, I can assume that the class weight will either be balanced or a balanced_subsample. 
+           - **Number of Estimators**: ```np.linspace(25,200,4)```
               - Here I choose a variety of different number of estimators. These represent the number of decision trees that make up our "RandomForest". The larger the number can potentially lead to decreasing the variance of our model. 
+           - **Max Samples**:  ```np.linspace(0.1, 0.9, 5)```
+              - This variable is dependent on bootstrap=True. For each base estimator, it will sample between 10-90% of X for training. If bootstrap=False. the whole data will be used to train each tree.
+           - **Max Features**: ```['auto', 'sqrt', 'log2']```
+              - For each split in each node, this feature represents the derivation needed to figure out the number of features to take into consideration. We want to make sure it chooses m features where m has a high enough probability to use at least one "predictive" feature.
               
               
    2. **```LinearSVC```**
@@ -151,26 +157,40 @@ ________
 # RandomizedSearchCV Results: 
 Best Model:
 ```python
-RandomForestClassifier(bootstrap=False,  # No bootstrapping -> Each tree sees all data
-                       class_weight='balanced',  # Good because our data is imbalanced
+# Before
+RandomForestClassifier(bootstrap=False,  # No bootstrapping
+                       max_samples=0.1,   # Percent of samples to be trained on
+                       class_weight='balanced_subsample',  # Good because our data is imbalanced
                        min_samples_leaf=4,  # Increasing can improve generalizability if we are overfitting
-                       n_estimators=216,  # Plenty of trees to train
+                       n_estimators=83,  # Plenty of trees to train
                        n_jobs=-1)
-```
-F1_Weighted Score: ```0.798```
 
-Commentary:
-- Class_weight being 'balanced_subsample' can be changed to 'balanced' because we are not bootstrapping. In addition, we can remove max_samples from the hyperparamter list.
-- We notice that bootstrapping let to a worse cross-validated weighted-f1 score.
+```
+Weighted F1 Score: ``` 0.797```
+
+**Note**:
+- We notice that bootstrapping let to a worse cross-validated Weighted F1 score.
+- In addition, with bootstrapping=False, that means that class_weight being 'balanced_subsample' is the same as 'balanced'. It also means that we are not actually using our max_samples parameter and can remove it.
 - In addition, our min_samples_leaf was 4, which helps weaken the individual decision trees, but increase model generalizability (decreases variance)
 - The class_weight being balanced which makes sense because our data is imbalanced and the model needs to add weights to the different labels. This can lead to a higher recall score and a lower precision score.
+   
+```python
+# After
+RandomForestClassifier(bootstrap=False,  # No bootstrapping
+                       class_weight='balanced',  # Good because our data is imbalanced
+                       min_samples_leaf=4,  # Increasing can improve generalizability if we are overfitting
+                       n_estimators=83,  # Plenty of trees to train
+                       n_jobs=-1)
+
+```
+
    
 _________
 # Ensemble Learning <a id='ensemble'></a>
 _______
 In order to further improve our model, we can look into ensemble learning as a way to improve our metric (f1_weighted). Note that we will be primarily looking at:
 1. VotingClassifier()
-    - This is the simplest of the three as it simply combines multiple machine learning models and takes the most common prediction ("Hard Voting") or the probability-weighted average of the individual learners ("Soft Voting").
+    - VotingClassifier combines multiple machine learning models and takes the most common prediction ("Hard Voting") or the probability-weighted average of the individual learners ("Soft Voting").
 2. Bagging
     - Bagging is useful because it tends to reduce the time of each individual model and improve the overall generality. In addition, it can be used with a variety of different models.
 3. Boosting
@@ -186,71 +206,64 @@ ________
     
     
 2. Bagging:
-    - Similarly to VotingClassifier, this ensemble method did not do significantly better than my simpler model (1 RandomForestClassifier).
+    - Similarly, the results of using a BaggingClassifier was fairly similar to the simple RandomForestClassifier.
+    - I decided to not use this model for my final model.
 
 
 3. GradientBoostingClassifier():
-    - This strategy, using a GradientBoostingClassifier as my final_estimator in a StackingClassifier gave me my best f1_weighted score. Therefore, I am going to use this as my final model. Note that the 3 estimators from my VotingClassifier() were used as the first step in my stackingClassifier.
+    - This strategy, using a GradientBoostingClassifier as my final_estimator in a StackingClassifier gave me my best Weighted F1 score. That being said, its recall was almost 10% less than the other estimators with a marginally better precision score. 
 ___________
 
 # Final Model Selection <a id='final_model'></a>
 ___________
-I decided to use a StackingClassifier with the 3 estimators from my VotingClassifier and a GradientBoostingClassifier as my final estimator. This decision took into consideration the longer training time and considered that the increase in my weighted f1_score made it worth it.
+Although I briefly looked at some ensemble techniques, I decided to stick with my original RandomForestClassifier **(RFC)** because of it's simultaneously high F! weighted score and recall. In addition, the RFC, compared to the ensemble techniques trained much quicker.
 _______
 ## Specifications of the Final Model:
 
 
-Our final model included a **GradientBoostingClassifier** as our final estimator in a **StackingClassifier**.
-The way a StackingClassifier works is that it takes in a number of estimators that will output their results as the input of our GradientBoostingClassifier (which trains a default of 100 decision stumps). Now, for the inputs: 
-1. Estimator 1:
-   - This model was my initial model that outperformed the other models I tested in my RandomizedSearchCV
-   - Note that the hyperparameters for the RandomForestClassifier were chosen through a RandomizedSearchCV explained in my Initial Model selection.
-   
+Our final model is a **RandomForestClassifier** with the following hyperparameters:
+
 ```python
-RandomForestClassifier(bootstrap=False,  # Don't bootstrap (each tree is trained on all data)
-                       class_weight='balanced',  # Imbalanced data
+RandomForestClassifier(bootstrap=False,  # No bootstrapping
+                       class_weight='balanced',  # Good because our data is imbalanced
                        min_samples_leaf=4,  # Increasing can improve generalizability if we are overfitting
-                       n_estimators=216,  # Plenty of trees to try to reduce variability in predictions
-                       n_jobs=-1) 
-``` 
-2. Estimator 2:
-    - A LogisticRegression model was used in addition to add a more variety of models. These hyperparameters were chosen based off of rerunning my RandomizedSearchCV until I got different models from the RandomForestClassifier.
-    
-```python
-LogisticRegression(class_weight='balanced',  # Imbalanced data
-                   n_jobs=-1, 
-                   solver='sag')  # sag gives us a faster convergence on normalized data
-```
-3. Estimator 3:
-    -  An ExtraTreesClassifier was also used because it I wanted to include at least one model that involved bootstrapping data. In particular, this model trained 50 trees on 20 sample observations from the data. In addition, the default hyperparameter for max_features trains each tree on a subset of the features in the data. Setting min_samples_leaf to 10 can lead to more generalizable results as each tree is cut a bit shorter in order for them to better predict on observations it hasn't seen before. Note that these hyperparameters were chosen based off of rerunning my RandomizedSearchCV until I got different models from the RandomForestClassifier.
-```python
-ExtraTreesClassifier(class_weight='balanced',  # Imbalanced data
-                     max_samples=20,  # Train each tree on a sample of 20 observations
-                     min_samples_leaf=10,  # Increasing can improve generalizability if we are overfitting
-                     n_estimators=50,  # Number of trees to create in our classifier
-                     n_jobs=-1)
-```
-_________
-**All together**:
-```python
-final_estimator = GradientBoostingClassifier()  # Default hyperparameters
-
-reg = StackingClassifier(estimators=estimators,  # The individual estimators explained above
-                         final_estimator=final_estimator, 
-                         n_jobs=-1)
+                       n_estimators=83,  # Plenty of trees to train
+                       n_jobs=-1)
 
 ```
+
+    - Note that since bootstrap=False, this model is training 83 decision trees with all the available data.
 _________
 
 **But wait, there's more!**
-In order to fit our StackingClassifier on the data, we needed to first include our preprocessing steps.
+In order to fit our RandomForestClassifier on the data, we needed to first include our preprocessing steps.
 
 This involved:
-   1. Ranking some ordinal features by their relative probabilities of having the target variable = 1.
-       - Note that this is something I wanted to test to see how it would impact my final result. It is not common practice to use this method. Instead, when encoding ordinal features, we define the order heuristically. For example:
-           - Say we have a feature, Education, with 3 categories: High School, Masters, PhD. The traditional way would be to either OneHotEncode them or encode them with their order of difficulty to acquire (High School -> 1, Masters -> 2, PhD -> 3). My method involved looking at each category and seeing which had the highest probability of having our target=1 (the individual is currently looking for work). With that information, we can rank them in that order, where higher numbers signify that they are **more** likely to be looking for work than lower numbers.
-   2. Using OneHotEncoding on both 'city' and 'gender' after imputing "missing" values anywhere the data is not collected.
-   3. Imputing the median for the numerical values, scaling them, and then changing their distribution into a Gaussian one.
+   1. Using OneHotEncoding on all categorical features after imputing "missing" values anywhere the data is not collected.
+   
+```python
+cat_pipe = Pipeline([("impute", SimpleImputer(missing_values=np.nan, 
+                                              fill_value='missing', 
+                                              strategy="constant")),
+                     ("encode", OneHotEncoder())])
+
+```
+   2. Use IterativeImputer for the numerical values, scale them, and then change their distribution into a Gaussian one.
+   
+```python
+num_pipe = Pipeline([("impute", IterativeImputer(missing_values=np.nan, 
+                                                 max_iter=10, 
+                                                 initial_strategy="median")),
+                     ("scaler", StandardScaler()),
+                     ("transformer", QuantileTransformer(output_distribution='normal'))])
+
+```
+   3. Grouping them together with a ColumnTransformer().
+```python
+preprocessing = ColumnTransformer([("categorical", cat_pipe, cat_cols),
+                                   ("numerical", num_pipe, num_cols)]) 
+
+```
 _______
 
 
@@ -259,22 +272,21 @@ _______
 ![metrics](Images/metrics.png)
 
 #### Interpretation:
-1. Looking at the confusion matrix, we see that our model did fairly well. In particular, our model misclassified only 14% of individuals not looking for work, and 37% of individuals looking for work.
+1. Looking at the confusion matrix, we see that our model did fairly well. In particular, our model misclassified only 18% of individuals not looking for work, and 27% of individuals looking for work.
 
 
-2. In particular, our precision score was 62%, which means that **"When my model predicted someone to be Looking for Work, it was accurate 62% of the time."**. Although this isn't an amazing score, it can still be useful for a variety of potential business cases. In the narrative that we are using this model to help better allocate the time of our recruiters, having a 62% chance that every candidate the recruiter is talking to is looking for a job, can be a huge time saver. This is compared to not using the model and having only a 33% chance of reaching out to someone at random and them currently looking for work.
+2. In particular, our precision score was 59%, which means that **"When my model predicted someone to be Looking for Work, it was accurate 59% of the time."**. Although this isn't an amazing score, it can still be useful for a variety of potential business cases. In the narrative that we are using this model to help better allocate the time of our recruiters, having a 59% chance that every candidate the recruiter is talking to is looking for a job, can be a huge time saver. This is compared to not using the model and having only a 25% chance of reaching out to someone at random and them currently looking for work.
 
 
-3. In addition, we can look at the recall score. At 63%, this means that **"When an individual was looking for work, our model accurately classified them 63% of the time."** This is also an important metric for the above business situation. In particular, we would want to minimize our False Negatives, aka: when our model inaccurately predicts someone who is looking for work.
+3. In addition, we can look at the recall score. At 72%, this means that **"When an individual was looking for work, our model accurately classified them 72% of the time."** This is also an important metric for the above business situation. In particular, we would want to minimize our False Negatives, aka: when our model inaccurately predicts someone who is looking for work. For the business, they may want a high recall in order to avoid missing out on good candidates.
 
 
-4. All together, we can look at the weighted f1 score of **79%** because our business case revolves around maximizing both precision and recall. Note that since this is an imbalanced dataset, our f1 score calculates the metric for each label, weighs it proportionally to its relative frequency, and outputs a score that, in this case, is not in-between the recall and precision score. 
-5. 
+4. All together, we can look at the weighted f1 score of **80%** because our business case revolves around maximizing both precision and recall. Note that since this is an imbalanced dataset, our f1 score calculates the metric for each label, weighs it proportionally to its relative frequency, and outputs a score that, in this case, is not in-between the recall and precision score. 
 _________
 # Conclusion: <a id='conclusion'></a>  
 
 ## Summary:
-With a goal of implementing a variety of skills learned in my Machine Learning Lab, this project focused on HR data to help identify whether or not someone is currently looking for a job. After extensive EDA, I decided to construct three separate pipelines for preprocessing: one for each type of feature (numerical, categorical, ordinal). Next, although my data was imbalanced, I decided against using oversampling with SMOTE because it didn't lead to a noticeable improvement (as shown with cross validation). Finally, I tried several of ensemble techniques and decided that my final model would be a StackingClassifer with a variety of estimators derived from my RandomizedSearchCV and a GradientBoostingClassifier as my final estimator. Note that I used a weighted f1 score as my metric to compare models with as it equally values precision and recall scores while taking into consideration that the data is imbalanced.
+With a goal of implementing a variety of skills learned in my Machine Learning Lab, this project focused on HR data to help identify whether or not someone is currently looking for a job. After extensive EDA, I decided to construct three separate pipelines for preprocessing: one for each type of feature (numerical, categorical, ordinal). Next, although my data was imbalanced, I decided against using oversampling with SMOTE because it didn't lead to a noticeable improvement (as shown with cross validation). Finally, I tried several of ensemble techniques and decided that my final model would be the original RandomForestClassifier that I found in my RandomizedSearchCV. Note that I used a weighted f1 score as my metric to compare models with as it equally values precision and recall scores while taking into consideration that the data is imbalanced.
 
 ## Common Questions:
 1. **Why does any of this matter?**
@@ -287,11 +299,8 @@ With a goal of implementing a variety of skills learned in my Machine Learning L
        - With numerical data, we need slightly different imputing strategies. This is because we want our end result to be all numerical. Therefore, I chose to use an IterativeImputer which I explain below.
 
 
-3. **How did I decide to using my own ordinal encoding?**
-    - After noticing that a lot of the categories had some inherent order to them, I was interested to see if I could find a relationship with a given value and an improved chance of signifying whether an observation is "Looking for a Job" (target == 1). I did this by calculating the relative probability that each column (other than 'city', 'gender', and the numerical columns) leads to the target being 1.
 
-
-4. **Why did I use an IterativeImputer for my numerical data?**
+3. **Why did I use an IterativeImputer for my numerical data?**
     - This decision was made primarily because I did not want to have a single rule of only imputing the median. Instead, an IterativeImputer works in the following way:
         - Say you have 4 columns ('a', 'b', 'c', 'd') and one column ('d') is missing some values. An iterative imputer will train a new model trying to predict the missing values in 'd' with the values in ('a', 'b', 'c').
 
@@ -301,13 +310,19 @@ With a goal of implementing a variety of skills learned in my Machine Learning L
 
 
 6. **Why did I use cross_val_score?**
-    - I decided to use cross_val_score because I felt that it was a better route of getting a good sense of how well a model performs in order to properly compare it to other modeling strategies.
+    - I decided to use cross_val_score because I felt that it was a better route of getting a good sense of how well a model performs in order to properly compare it to other modeling strategies. In addition, it was a quick way to compare different metrics like Recall and Precision to visualize the trade-off between models.
     
     
-7. **Why did I decide to use the StackingClassifier()?**
-   - Simply put, it had a better cross validation score than any other model.
+7. **Why did neither of my Ensemble Techniques lead to a significantly better model?**
+   - A lot of this has to do with fine tuning these models. For example:
+       - The VotingClassifier could potentially do much better if I spend more time deciding which (and how many) models to include. In addition, there are hyper-parameters that come with this model that could also be tweaked within a RandomizedSearchCV.
+       - The BaggingClassifier could also be tweaked more since I did not experiment iteratively through different parameter ranges.
+       - The Boosting probably has the most potential for success, but again, it involves extensive tweaking of hyper parameters and model selection.
+
+
 
 
 ## Future Steps
 1. As Boosting has taken Kaggle competitions by stride, it would be interesting to see more exploration on how boosting can further improve this model. In particular, I am interested to see how XGBoost and CatBoost can be used to solve this problem.
 2. Further exploration on other feature engineering techniques that could improve predictability.
+3. Exploring other approaches for counteracting imbalanced datasets.
